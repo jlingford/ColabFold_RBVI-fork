@@ -1093,21 +1093,21 @@ def main():
                         os.rename(
                             args.base.joinpath(f"{id}.paired.a3m"),
                             args.base.joinpath(
-                                f"{safe_filename(raw_jobname)}_{id}.paired.a3m"
+                                f"{safe_filename(raw_jobname)}.paired.a3m"
                             ),
                         )
                         if args.pre_pairing:
                             os.rename(
                                 args.base.joinpath(f"{id}.pre_paired.a3m"),
                                 args.base.joinpath(
-                                    f"{safe_filename(raw_jobname)}_{id}.pre_paired.a3m"
+                                    f"{safe_filename(raw_jobname)}.pre_paired.a3m"
                                 ),
                             )
                         if args.use_env_pairing:
                             os.rename(
                                 args.base.joinpath(f"{id}.env.paired.a3m"),
                                 args.base.joinpath(
-                                    f"{safe_filename(raw_jobname)}_{id}.env.paired.a3m"
+                                    f"{safe_filename(raw_jobname)}.env.paired.a3m"
                                 ),
                             )
                     else:
