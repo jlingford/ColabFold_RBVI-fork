@@ -780,6 +780,7 @@ def main():
     # NOTE: new options for passing and making unfiltered MSAs for downstream pairing
     parser.add_argument(
         "--merge-a3m",
+        dest="merge_a3m",
         type=int,
         default=1,
         choices=[0, 1],
@@ -1072,6 +1073,48 @@ def main():
                 args.base.joinpath(f"{job_number}.a3m"),
                 args.base.joinpath(f"{safe_filename(raw_jobname)}.a3m"),
             )
+            # PREPAIRING: needed for renaming paired.a3m files
+            if args.merge_a3m:
+                os.rename(
+                    args.base.joinpath(f"{job_number}.a3m"),
+                    args.base.joinpath(f"{safe_filename(raw_jobname)}.a3m"),
+                )
+            else:
+                # Rename unpaired, paired and env paired files.
+                nseqs = len(query_seqs_cardinality)
+                for id in range(job_number * nseqs, (job_number + 1) * nseqs):
+                    if nseqs > 1:
+                        os.rename(
+                            args.base.joinpath(f"{id}.a3m"),
+                            args.base.joinpath(
+                                f"{safe_filename(raw_jobname)}_{id}.a3m"
+                            ),
+                        )
+                        os.rename(
+                            args.base.joinpath(f"{id}.paired.a3m"),
+                            args.base.joinpath(
+                                f"{safe_filename(raw_jobname)}_{id}.paired.a3m"
+                            ),
+                        )
+                        if args.pre_pairing:
+                            os.rename(
+                                args.base.joinpath(f"{id}.pre_paired.a3m"),
+                                args.base.joinpath(
+                                    f"{safe_filename(raw_jobname)}_{id}.pre_paired.a3m"
+                                ),
+                            )
+                        if args.use_env_pairing:
+                            os.rename(
+                                args.base.joinpath(f"{id}.env.paired.a3m"),
+                                args.base.joinpath(
+                                    f"{safe_filename(raw_jobname)}_{id}.env.paired.a3m"
+                                ),
+                            )
+                    else:
+                        os.rename(
+                            args.base.joinpath(f"{id}.a3m"),
+                            args.base.joinpath(f"{safe_filename(raw_jobname)}.a3m"),
+                        )
 
         # rename m8 files
         if args.use_templates:
