@@ -1091,7 +1091,7 @@ def main():
                             os.rename(
                                 pre_paired_src,
                                 args.base.joinpath(
-                                    f"{safe_filename(raw_jobname)}_{id}.pre_paired.a3m"
+                                    f"{safe_filename(raw_jobname)}.pre_paired.a3m"
                                 ),
                             )
             else:
