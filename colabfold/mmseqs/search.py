@@ -1083,11 +1083,21 @@ def main():
             query_seqs_cardinality,
             other_molecules,
         ) in enumerate(queries_unique):
-            # WARN: fix? by commenting out to avoid double rename bug?
+            # WARN: main code block for renaming a3m file
             os.rename(
                 args.base.joinpath(f"{job_number}.a3m"),
-                args.base.joinpath(f"{safe_filename(raw_jobname)}.a3m"),
+                args.base.joinpath(
+                    f"{safe_filename(raw_jobname)}.merged.a3m"
+                ),  # NOTE: make sure the final file is identifiable as a non-standard colabfold_search MSA with the ".merged" suffix
             )
+            # WARN: code block for removing intermediate "pre_pairing" a3m files:
+            if args.pre_pairing:
+                nseqs = len(query_seqs_cardinality)
+                for id in range(job_number * nseqs, (job_number + 1) * nseqs):
+                    pre_paired = args.base.joinpath(f"{id}.pre_paired.a3m")
+                    if pre_paired.exists():
+                        pre_paired.unlink()
+
             # NOTE: MERGING_FILTERED_AND_UNFILTERED: turning this code block off for now
             # PREPAIRING: needed for renaming paired.a3m files
             # if args.merge_a3m:
