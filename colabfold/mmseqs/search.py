@@ -275,6 +275,11 @@ def mmseqs_search_monomer(
         # PREPAIRING
         # NOTE: main modification to prevent filtering of alignments, allowing more orthologs to be paired for downstream MSA pairing
         if pre_pairing:
+            # guard:
+            if pre_pairing and not use_env:
+                raise ValueError(
+                    "--pre_pairing with combined output requires --use-env"
+                )
             expand_param_pairing = [
                 "--expansion-mode",
                 "0",
@@ -285,7 +290,10 @@ def mmseqs_search_monomer(
                 "--max-seq-id",
                 "0.95",
             ]
+            # WARN: hardcoded values. may want to play around with these
+            # --max-accept: max number of hits accepted before matching stops
             max_accept_pairing = 1000000
+            # -e: match hits below this evalue
             align_eval_pairing = 0.001
             run_mmseqs(
                 mmseqs,
@@ -333,7 +341,7 @@ def mmseqs_search_monomer(
                     "--db-load-mode",
                     str(db_load_mode),
                     "--msa-format-mode",
-                    "5",
+                    "6",  # changed from 5 to 6 to make mergind DBs possible
                     "--threads",
                     str(threads),
                 ],
@@ -350,7 +358,7 @@ def mmseqs_search_monomer(
                     ".pre_paired.a3m",
                 ],
             )
-            run_mmseqs(mmseqs, ["rmdb", base.joinpath("pre_pairing.a3m")])
+            # run_mmseqs(mmseqs, ["rmdb", base.joinpath("pre_pairing.a3m")])  # do not unpack here, allow for merging later
             run_mmseqs(mmseqs, ["rmdb", base.joinpath("res_exp_realign")])
             run_mmseqs(mmseqs, ["rmdb", base.joinpath("res_exp")])
 
@@ -522,10 +530,16 @@ def mmseqs_search_monomer(
                 base.joinpath("final.a3m"),
                 base.joinpath("uniref.a3m"),
                 base.joinpath("bfd.mgnify30.metaeuk30.smag30.a3m"),
+                base.joinpath(
+                    "pre_pairing.a3m"
+                ),  # MERGING_FILTERED_AND_UNFILTERED: merge DB
             ],
         )
         run_mmseqs(mmseqs, ["rmdb", base.joinpath("bfd.mgnify30.metaeuk30.smag30.a3m")])
         run_mmseqs(mmseqs, ["rmdb", base.joinpath("uniref.a3m")])
+        run_mmseqs(
+            mmseqs, ["rmdb", base.joinpath("pre_pairing.a3m")]
+        )  # MERGING_FILTERED_AND_UNFILTERED: cleanup
     else:
         run_mmseqs(
             mmseqs, ["mvdb", base.joinpath("uniref.a3m"), base.joinpath("final.a3m")]
@@ -1070,66 +1084,67 @@ def main():
             other_molecules,
         ) in enumerate(queries_unique):
             # WARN: fix? by commenting out to avoid double rename bug?
-            # os.rename(
-            #     args.base.joinpath(f"{job_number}.a3m"),
-            #     args.base.joinpath(f"{safe_filename(raw_jobname)}.a3m"),
-            # )
+            os.rename(
+                args.base.joinpath(f"{job_number}.a3m"),
+                args.base.joinpath(f"{safe_filename(raw_jobname)}.a3m"),
+            )
+            # NOTE: MERGING_FILTERED_AND_UNFILTERED: turning this code block off for now
             # PREPAIRING: needed for renaming paired.a3m files
-            if args.merge_a3m:
-                # TODO:
-                # WARN: this is failing when --merge_a3m=1. replace job_number with id?
-                os.rename(
-                    args.base.joinpath(f"{job_number}.a3m"),
-                    args.base.joinpath(f"{safe_filename(raw_jobname)}.a3m"),
-                )
-                # FIX? rename pre_paired files by sequence id within this job
-                if args.pre_pairing:
-                    nseqs = len(query_seqs_cardinality)
-                    for id in range(job_number * nseqs, (job_number + 1) * nseqs):
-                        pre_paired_src = args.base.joinpath(f"{id}.pre_paired.a3m")
-                        if pre_paired_src.exists():
-                            os.rename(
-                                pre_paired_src,
-                                args.base.joinpath(
-                                    f"{safe_filename(raw_jobname)}.pre_paired.a3m"
-                                ),
-                            )
-            else:
-                # Rename unpaired, paired and env paired files.
-                nseqs = len(query_seqs_cardinality)
-                for id in range(job_number * nseqs, (job_number + 1) * nseqs):
-                    if nseqs > 1:
-                        os.rename(
-                            args.base.joinpath(f"{id}.a3m"),
-                            args.base.joinpath(
-                                f"{safe_filename(raw_jobname)}_{id}.a3m"
-                            ),
-                        )
-                        os.rename(
-                            args.base.joinpath(f"{id}.paired.a3m"),
-                            args.base.joinpath(
-                                f"{safe_filename(raw_jobname)}.paired.a3m"
-                            ),
-                        )
-                        if args.pre_pairing:
-                            os.rename(
-                                args.base.joinpath(f"{id}.pre_paired.a3m"),
-                                args.base.joinpath(
-                                    f"{safe_filename(raw_jobname)}.pre_paired.a3m"
-                                ),
-                            )
-                        if args.use_env_pairing:
-                            os.rename(
-                                args.base.joinpath(f"{id}.env.paired.a3m"),
-                                args.base.joinpath(
-                                    f"{safe_filename(raw_jobname)}.env.paired.a3m"
-                                ),
-                            )
-                    else:
-                        os.rename(
-                            args.base.joinpath(f"{id}.a3m"),
-                            args.base.joinpath(f"{safe_filename(raw_jobname)}.a3m"),
-                        )
+            # if args.merge_a3m:
+            #     # TODO:
+            #     # WARN: this is failing when --merge_a3m=1. replace job_number with id?
+            #     os.rename(
+            #         args.base.joinpath(f"{job_number}.a3m"),
+            #         args.base.joinpath(f"{safe_filename(raw_jobname)}.a3m"),
+            #     )
+            #     # FIX? rename pre_paired files by sequence id within this job
+            #     if args.pre_pairing:
+            #         nseqs = len(query_seqs_cardinality)
+            #         for id in range(job_number * nseqs, (job_number + 1) * nseqs):
+            #             pre_paired_src = args.base.joinpath(f"{id}.pre_paired.a3m")
+            #             if pre_paired_src.exists():
+            #                 os.rename(
+            #                     pre_paired_src,
+            #                     args.base.joinpath(
+            #                         f"{safe_filename(raw_jobname)}.pre_paired.a3m"
+            #                     ),
+            #                 )
+            # else:
+            #     # Rename unpaired, paired and env paired files.
+            #     nseqs = len(query_seqs_cardinality)
+            #     for id in range(job_number * nseqs, (job_number + 1) * nseqs):
+            #         if nseqs > 1:
+            #             os.rename(
+            #                 args.base.joinpath(f"{id}.a3m"),
+            #                 args.base.joinpath(
+            #                     f"{safe_filename(raw_jobname)}_{id}.a3m"
+            #                 ),
+            #             )
+            #             os.rename(
+            #                 args.base.joinpath(f"{id}.paired.a3m"),
+            #                 args.base.joinpath(
+            #                     f"{safe_filename(raw_jobname)}.paired.a3m"
+            #                 ),
+            #             )
+            #             if args.pre_pairing:
+            #                 os.rename(
+            #                     args.base.joinpath(f"{id}.pre_paired.a3m"),
+            #                     args.base.joinpath(
+            #                         f"{safe_filename(raw_jobname)}.pre_paired.a3m"
+            #                     ),
+            #                 )
+            #             if args.use_env_pairing:
+            #                 os.rename(
+            #                     args.base.joinpath(f"{id}.env.paired.a3m"),
+            #                     args.base.joinpath(
+            #                         f"{safe_filename(raw_jobname)}.env.paired.a3m"
+            #                     ),
+            #                 )
+            #         else:
+            #             os.rename(
+            #                 args.base.joinpath(f"{id}.a3m"),
+            #                 args.base.joinpath(f"{safe_filename(raw_jobname)}.a3m"),
+            #             )
 
         # rename m8 files
         if args.use_templates:
