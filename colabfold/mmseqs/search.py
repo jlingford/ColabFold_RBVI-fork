@@ -1069,16 +1069,31 @@ def main():
             query_seqs_cardinality,
             other_molecules,
         ) in enumerate(queries_unique):
-            os.rename(
-                args.base.joinpath(f"{job_number}.a3m"),
-                args.base.joinpath(f"{safe_filename(raw_jobname)}.a3m"),
-            )
+            # WARN: fix? by commenting out to avoid double rename bug?
+            # os.rename(
+            #     args.base.joinpath(f"{job_number}.a3m"),
+            #     args.base.joinpath(f"{safe_filename(raw_jobname)}.a3m"),
+            # )
             # PREPAIRING: needed for renaming paired.a3m files
             if args.merge_a3m:
+                # TODO:
+                # WARN: this is failing when --merge_a3m=1. replace job_number with id?
                 os.rename(
                     args.base.joinpath(f"{job_number}.a3m"),
                     args.base.joinpath(f"{safe_filename(raw_jobname)}.a3m"),
                 )
+                # FIX? rename pre_paired files by sequence id within this job
+                if args.pre_pairing:
+                    nseqs = len(query_seqs_cardinality)
+                    for id in range(job_number * nseqs, (job_number + 1) * nseqs):
+                        pre_paired_src = args.base.joinpath(f"{id}.pre_paired.a3m")
+                        if pre_paired_src.exists():
+                            os.rename(
+                                pre_paired_src,
+                                args.base.joinpath(
+                                    f"{safe_filename(raw_jobname)}_{id}.pre_paired.a3m"
+                                ),
+                            )
             else:
                 # Rename unpaired, paired and env paired files.
                 nseqs = len(query_seqs_cardinality)
