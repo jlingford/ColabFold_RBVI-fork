@@ -3,10 +3,13 @@ from pathlib import Path
 import random
 import logging
 from colabfold.utils import MolType
+
 logger = logging.getLogger(__name__)
+
 
 def safe_filename(file: str) -> str:
     return "".join([c if c.isalnum() or c in ["_", ".", "-"] else "_" for c in file])
+
 
 def pair_sequences(
     a3m_lines: List[str], query_sequences: List[str], query_cardinality: List[int]
@@ -22,6 +25,7 @@ def pair_sequences(
             else:
                 a3m_line_paired[i] = a3m_line_paired[i] + line * query_cardinality[n]
     return "\n".join(a3m_line_paired)
+
 
 def pad_sequences(
     a3m_lines: List[str], query_sequences: List[str], query_cardinality: List[int]
@@ -48,6 +52,7 @@ def pad_sequences(
             pos += 1
     return "\n".join(a3m_lines_combined)
 
+
 def pair_msa(
     query_seqs_unique: List[str],
     query_seqs_cardinality: List[int],
@@ -72,6 +77,7 @@ def pair_msa(
         raise ValueError(f"Invalid pairing")
     return a3m_lines
 
+
 def msa_to_str(
     unpaired_msa: List[str],
     paired_msa: List[str],
@@ -84,6 +90,7 @@ def msa_to_str(
     query_seqs_cardinality = [1 for _ in query_seqs_cardinality]
     msa += pair_msa(query_seqs_unique, query_seqs_cardinality, paired_msa, unpaired_msa)
     return msa
+
 
 def parse_fasta(fasta_string: str) -> Tuple[List[str], List[str]]:
     """Parses FASTA string and returns list of strings with amino-acid sequences.
@@ -115,7 +122,10 @@ def parse_fasta(fasta_string: str) -> Tuple[List[str], List[str]]:
 
     return sequences, descriptions
 
-def classify_molecules(query_sequence: str) -> Tuple[List[str], Optional[List[Tuple[MolType, str, int]]]]:
+
+def classify_molecules(
+    query_sequence: str,
+) -> Tuple[List[str], Optional[List[Tuple[MolType, str, int]]]]:
     """Classifies the sequences in the query sequence string into protein and non-protein sequences.
 
     Returns a tuple of two lists:
@@ -135,66 +145,113 @@ def classify_molecules(query_sequence: str) -> Tuple[List[str], Optional[List[Tu
             if moltype == MolType.SMILES:
                 sequence = sequence.replace(";", ":")
             copies = int(rest[0]) if rest else 1
-            other_queries.append((moltype, sequence, copies))  # (molecule type, sequence, copies)
+            other_queries.append(
+                (moltype, sequence, copies)
+            )  # (molecule type, sequence, copies)
 
     if len(other_queries) == 0:
         other_queries = None
 
     return protein_queries, other_queries
 
+
 modified_mapping = {
-    "MSE" : "MET", "MLY" : "LYS", "FME" : "MET", "HYP" : "PRO",
-    "TPO" : "THR", "CSO" : "CYS", "SEP" : "SER", "M3L" : "LYS",
-    "HSK" : "HIS", "SAC" : "SER", "PCA" : "GLU", "DAL" : "ALA",
-    "CME" : "CYS", "CSD" : "CYS", "OCS" : "CYS", "DPR" : "PRO",
-    "B3K" : "LYS", "ALY" : "LYS", "YCM" : "CYS", "MLZ" : "LYS",
-    "4BF" : "TYR", "KCX" : "LYS", "B3E" : "GLU", "B3D" : "ASP",
-    "HZP" : "PRO", "CSX" : "CYS", "BAL" : "ALA", "HIC" : "HIS",
-    "DBZ" : "ALA", "DCY" : "CYS", "DVA" : "VAL", "NLE" : "LEU",
-    "SMC" : "CYS", "AGM" : "ARG", "B3A" : "ALA", "DAS" : "ASP",
-    "DLY" : "LYS", "DSN" : "SER", "DTH" : "THR", "GL3" : "GLY",
-    "HY3" : "PRO", "LLP" : "LYS", "MGN" : "GLN", "MHS" : "HIS",
-    "TRQ" : "TRP", "B3Y" : "TYR", "PHI" : "PHE", "PTR" : "TYR",
-    "TYS" : "TYR", "IAS" : "ASP", "GPL" : "LYS", "KYN" : "TRP",
-    "CSD" : "CYS", "SEC" : "CYS"
+    "MSE": "MET",
+    "MLY": "LYS",
+    "FME": "MET",
+    "HYP": "PRO",
+    "TPO": "THR",
+    "CSO": "CYS",
+    "SEP": "SER",
+    "M3L": "LYS",
+    "HSK": "HIS",
+    "SAC": "SER",
+    "PCA": "GLU",
+    "DAL": "ALA",
+    "CME": "CYS",
+    "CSD": "CYS",
+    "OCS": "CYS",
+    "DPR": "PRO",
+    "B3K": "LYS",
+    "ALY": "LYS",
+    "YCM": "CYS",
+    "MLZ": "LYS",
+    "4BF": "TYR",
+    "KCX": "LYS",
+    "B3E": "GLU",
+    "B3D": "ASP",
+    "HZP": "PRO",
+    "CSX": "CYS",
+    "BAL": "ALA",
+    "HIC": "HIS",
+    "DBZ": "ALA",
+    "DCY": "CYS",
+    "DVA": "VAL",
+    "NLE": "LEU",
+    "SMC": "CYS",
+    "AGM": "ARG",
+    "B3A": "ALA",
+    "DAS": "ASP",
+    "DLY": "LYS",
+    "DSN": "SER",
+    "DTH": "THR",
+    "GL3": "GLY",
+    "HY3": "PRO",
+    "LLP": "LYS",
+    "MGN": "GLN",
+    "MHS": "HIS",
+    "TRQ": "TRP",
+    "B3Y": "TYR",
+    "PHI": "PHE",
+    "PTR": "TYR",
+    "TYS": "TYR",
+    "IAS": "ASP",
+    "GPL": "LYS",
+    "KYN": "TRP",
+    "CSD": "CYS",
+    "SEC": "CYS",
 }
 
 restype_1to3 = {
-    'A': 'ALA',
-    'R': 'ARG',
-    'N': 'ASN',
-    'D': 'ASP',
-    'C': 'CYS',
-    'Q': 'GLN',
-    'E': 'GLU',
-    'G': 'GLY',
-    'H': 'HIS',
-    'I': 'ILE',
-    'L': 'LEU',
-    'K': 'LYS',
-    'M': 'MET',
-    'F': 'PHE',
-    'P': 'PRO',
-    'S': 'SER',
-    'T': 'THR',
-    'W': 'TRP',
-    'Y': 'TYR',
-    'V': 'VAL',
+    "A": "ALA",
+    "R": "ARG",
+    "N": "ASN",
+    "D": "ASP",
+    "C": "CYS",
+    "Q": "GLN",
+    "E": "GLU",
+    "G": "GLY",
+    "H": "HIS",
+    "I": "ILE",
+    "L": "LEU",
+    "K": "LYS",
+    "M": "MET",
+    "F": "PHE",
+    "P": "PRO",
+    "S": "SER",
+    "T": "THR",
+    "W": "TRP",
+    "Y": "TYR",
+    "V": "VAL",
 }
 restype_3to1 = {v: k for k, v in restype_1to3.items()}
 
+
 def pdb_to_string(
-        pdb_file: str,
-        chains: Optional[str] = None,
-        models: Optional[list] = None,
-    ) -> str:
-    '''read pdb file and return as string'''
+    pdb_file: str,
+    chains: Optional[str] = None,
+    models: Optional[list] = None,
+) -> str:
+    """read pdb file and return as string"""
 
     if chains is not None:
-        if "," in chains: chains = chains.split(",")
-        if not isinstance(chains,list): chains = [chains]
+        if "," in chains:
+            chains = chains.split(",")
+        if not isinstance(chains, list):
+            chains = [chains]
     if models is not None:
-        if not isinstance(models,list): models = [models]
+        if not isinstance(models, list):
+            models = [models]
 
     modres = {**modified_mapping}
     lines = []
@@ -204,8 +261,8 @@ def pdb_to_string(
     if "\n" in pdb_file:
         old_lines = pdb_file.split("\n")
     else:
-        with open(pdb_file,"rb") as f:
-          old_lines = [line.decode("utf-8","ignore").rstrip() for line in f]
+        with open(pdb_file, "rb") as f:
+            old_lines = [line.decode("utf-8", "ignore").rstrip() for line in f]
     for line in old_lines:
         if line[:5] == "MODEL":
             model = int(line[5:])
@@ -218,35 +275,56 @@ def pdb_to_string(
             if line[:6] == "HETATM":
                 k = line[17:20]
                 if k in modres:
-                    line = "ATOM  "+line[6:17]+modres[k]+line[20:]
+                    line = "ATOM  " + line[6:17] + modres[k] + line[20:]
             if line[:4] == "ATOM":
                 chain = line[21:22]
                 if chains is None or chain in chains:
-                    atom = line[12:12+4].strip()
-                    resi = line[17:17+3]
-                    resn = line[22:22+5].strip()
-                    if resn[-1].isalpha(): # alternative atom
+                    atom = line[12 : 12 + 4].strip()
+                    resi = line[17 : 17 + 3]
+                    resn = line[22 : 22 + 5].strip()
+                    if resn[-1].isalpha():  # alternative atom
                         resn = resn[:-1]
-                        line = line[:26]+" "+line[27:]
+                        line = line[:26] + " " + line[27:]
                     key = f"{model}_{chain}_{resn}_{resi}_{atom}"
-                    if key not in seen: # skip alternative placements
+                    if key not in seen:  # skip alternative placements
                         lines.append(line)
                         seen.append(key)
             if line[:5] == "MODEL" or line[:3] == "TER" or line[:6] == "ENDMDL":
                 lines.append(line)
     return "\n".join(lines)
 
+
 restypes = [
-    'A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L', 'K', 'M', 'F', 'P',
-    'S', 'T', 'W', 'Y', 'V'
+    "A",
+    "R",
+    "N",
+    "D",
+    "C",
+    "Q",
+    "E",
+    "G",
+    "H",
+    "I",
+    "L",
+    "K",
+    "M",
+    "F",
+    "P",
+    "S",
+    "T",
+    "W",
+    "Y",
+    "V",
 ]
-restypes_with_x = restypes + ['X']
+restypes_with_x = restypes + ["X"]
 restype_order_with_x = {restype: i for i, restype in enumerate(restypes_with_x)}
 order_to_restype = {v: k for k, v in restype_order_with_x.items()}
+
+
 def decode_structure_sequences(
     aatype_array: List[int],
     chain_index_array: List[int],
-    order_dict: Dict[int, str] = order_to_restype
+    order_dict: Dict[int, str] = order_to_restype,
 ) -> List[str]:
     decoded_sequences = []
     current_sequence = []
@@ -264,11 +342,23 @@ def decode_structure_sequences(
 
     return decoded_sequences
 
+
 def get_queries(
     input_path: Union[str, Path], sort_queries_by: str = "length"
-) -> Tuple[List[Tuple[str, str, Optional[List[str]], Optional[List[Tuple[MolType, str, int]]]]], bool]:
+) -> Tuple[
+    List[
+        Tuple[str, str, Optional[List[str]], Optional[List[Tuple[MolType, str, int]]]]
+    ],
+    bool,
+]:
     """Reads a directory of fasta files, a single fasta file or a csv file and returns a tuple
-    of job name, sequence, optional a3m lines, and the optional non-protein sequences."""
+    of job name, sequence, optional a3m lines, and the optional non-protein sequences.
+
+    NOTE: to parse MULTIPLE sequences in a single fasta file, the file should be provided directly to
+          this function.
+          If a directory of fasta files is provided, this function will instead expect all fasta files
+          to contain only ONE sequence per file.
+    """
 
     input_path = Path(input_path)
     if not input_path.exists():
@@ -278,6 +368,7 @@ def get_queries(
         if input_path.suffix == ".csv" or input_path.suffix == ".tsv":
             sep = "\t" if input_path.suffix == ".tsv" else ","
             import pandas
+
             df = pandas.read_csv(input_path, sep=sep, dtype=str)
             assert "id" in df.columns and "sequence" in df.columns
             has_a3m = "a3mpath" in df.columns
@@ -299,6 +390,7 @@ def get_queries(
             # Use a list so we can easily extend this to multiple msas later
             a3m_lines = [input_path.read_text()]
             queries = [(input_path.stem, query_sequence, a3m_lines, None)]
+        # NOTE: multiple sequences can be read when providing a single fasta file as input
         elif input_path.suffix in [".fasta", ".faa", ".fa"]:
             (sequences, headers) = parse_fasta(input_path.read_text())
             queries = []
@@ -313,6 +405,7 @@ def get_queries(
                     queries.append((header, protein_queries, None, other_queries))
         elif input_path.suffix in [".pdb", ".cif"]:
             from alphafold.common import protein
+
             if input_path.suffix == ".pdb":
                 pdb_string = pdb_to_string(input_path.read_text())
                 prot = protein.from_pdb_string(pdb_string)
@@ -334,7 +427,14 @@ def get_queries(
         for file in sorted(input_path.iterdir()):
             if not file.is_file():
                 continue
-            if file.suffix.lower() not in [".a3m", ".fasta", ".faa", ".fa", ".pdb", ".cif"]:
+            if file.suffix.lower() not in [
+                ".a3m",
+                ".fasta",
+                ".faa",
+                ".fa",
+                ".pdb",
+                ".cif",
+            ]:
                 logger.warning(f"non-fasta/a3m/pdb/cif file in input directory: {file}")
                 continue
             if file.suffix.lower() in [".pdb", ".cif"]:
@@ -356,6 +456,7 @@ def get_queries(
             if len(seqs) == 0:
                 logger.error(f"{file} is empty")
                 continue
+            # WARN: expecting one sequence per fasta file when an input directory is provided
             query_sequence = seqs[0]
             if len(seqs) > 1 and file.suffix in [".fasta", ".faa", ".fa"]:
                 logger.warning(
