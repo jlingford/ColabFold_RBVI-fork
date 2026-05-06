@@ -276,10 +276,10 @@ def mmseqs_search_monomer(
         # NOTE: main modification to prevent filtering of alignments, allowing more orthologs to be paired for downstream MSA pairing
         if pre_pairing:
             # guard:
-            if pre_pairing and not use_env:
-                raise ValueError(
-                    "--pre_pairing with combined output requires --use-env"
-                )
+            # if pre_pairing and not use_env:
+            #     raise ValueError(
+            #         "--pre_pairing with combined output requires --use-env"
+            #     )
             expand_param_pairing = [
                 "--expansion-mode",
                 "0",
