@@ -521,7 +521,55 @@ def mmseqs_search_monomer(
             f"Skipping {template_db} search because {template_db}.m8 already exists"
         )
 
+    # if use_env:
+    #     run_mmseqs(
+    #         mmseqs,
+    #         [
+    #             "mergedbs",
+    #             base.joinpath("qdb"),
+    #             base.joinpath("final.a3m"),
+    #             base.joinpath("uniref.a3m"),
+    #             base.joinpath("bfd.mgnify30.metaeuk30.smag30.a3m"),
+    #             base.joinpath(
+    #                 "pre_pairing.a3m"
+    #             ),  # MERGING_FILTERED_AND_UNFILTERED: merge DB
+    #         ],
+    #     )
+    #     run_mmseqs(mmseqs, ["rmdb", base.joinpath("bfd.mgnify30.metaeuk30.smag30.a3m")])
+    #     run_mmseqs(mmseqs, ["rmdb", base.joinpath("uniref.a3m")])
+    #     run_mmseqs(
+    #         mmseqs, ["rmdb", base.joinpath("pre_pairing.a3m")]
+    #     )  # MERGING_FILTERED_AND_UNFILTERED: cleanup
+    # else:
+    #     run_mmseqs(
+    #         mmseqs,
+    #         [
+    #             "mvdb",
+    #             base.joinpath("uniref.a3m"),
+    #             base.joinpath("final.a3m"),
+    #         ],
+    #     )
+    #     run_mmseqs(mmseqs, ["rmdb", base.joinpath("uniref.a3m")])
+
+    ############
+    # NOTE: updating pre_pairing option to work with different settings, like --use_env 0
+
     if use_env:
+        merge_dbs = [
+            base.joinpath("uniref.a3m"),
+            base.joinpath("bfd.mgnify30.metaeuk30.smag30.a3m"),
+        ]
+        if pre_pairing:
+            merge_dbs.append(base.joinpath("pre_pairing.a3m"))
+        run_mmseqs(
+            mmseqs,
+            ["mergedbs", base.joinpath("qdb"), base.joinpath("final.a3m")] + merge_dbs,
+        )
+        run_mmseqs(mmseqs, ["rmdb", base.joinpath("bfd.mgnify30.metaeuk30.smag30.a3m")])
+        run_mmseqs(mmseqs, ["rmdb", base.joinpath("uniref.a3m")])
+        if pre_pairing:
+            run_mmseqs(mmseqs, ["rmdb", base.joinpath("pre_pairing.a3m")])
+    elif pre_pairing:
         run_mmseqs(
             mmseqs,
             [
@@ -529,22 +577,18 @@ def mmseqs_search_monomer(
                 base.joinpath("qdb"),
                 base.joinpath("final.a3m"),
                 base.joinpath("uniref.a3m"),
-                base.joinpath("bfd.mgnify30.metaeuk30.smag30.a3m"),
-                base.joinpath(
-                    "pre_pairing.a3m"
-                ),  # MERGING_FILTERED_AND_UNFILTERED: merge DB
+                base.joinpath("pre_pairing.a3m"),
             ],
         )
-        run_mmseqs(mmseqs, ["rmdb", base.joinpath("bfd.mgnify30.metaeuk30.smag30.a3m")])
         run_mmseqs(mmseqs, ["rmdb", base.joinpath("uniref.a3m")])
-        run_mmseqs(
-            mmseqs, ["rmdb", base.joinpath("pre_pairing.a3m")]
-        )  # MERGING_FILTERED_AND_UNFILTERED: cleanup
+        run_mmseqs(mmseqs, ["rmdb", base.joinpath("pre_pairing.a3m")])
     else:
         run_mmseqs(
             mmseqs, ["mvdb", base.joinpath("uniref.a3m"), base.joinpath("final.a3m")]
         )
         run_mmseqs(mmseqs, ["rmdb", base.joinpath("uniref.a3m")])
+
+    ############
 
     if unpack:
         run_mmseqs(
