@@ -563,7 +563,12 @@ def mmseqs_search_monomer(
             merge_dbs.append(base.joinpath("pre_pairing.a3m"))
         run_mmseqs(
             mmseqs,
-            ["mergedbs", base.joinpath("qdb"), base.joinpath("final.a3m")] + merge_dbs,
+            [
+                "mergedbs",
+                base.joinpath("qdb"),
+                base.joinpath("final.a3m"),
+            ]
+            + merge_dbs,
         )
         run_mmseqs(mmseqs, ["rmdb", base.joinpath("bfd.mgnify30.metaeuk30.smag30.a3m")])
         run_mmseqs(mmseqs, ["rmdb", base.joinpath("uniref.a3m")])
@@ -580,7 +585,13 @@ def mmseqs_search_monomer(
                 base.joinpath("pre_pairing.a3m"),
             ],
         )
-        run_mmseqs(mmseqs, ["rmdb", base.joinpath("uniref.a3m")])
+        run_mmseqs(
+            mmseqs,
+            [
+                "rmdb",
+                base.joinpath("uniref.a3m"),
+            ],
+        )
         run_mmseqs(mmseqs, ["rmdb", base.joinpath("pre_pairing.a3m")])
     else:
         run_mmseqs(
